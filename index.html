@@ -1,0 +1,1536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SRN MEHTA SCHOOL ELECTIONS</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+    <style>
+        body {
+            font-family: sans-serif;
+            background-color: #6DCAD6; 
+            margin: 0; 
+            padding: 20px; 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #333;
+            min-height: 100vh; 
+            box-sizing: border-box;
+            transition: background-color 0.3s ease; 
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            text-align: center; 
+            width: 100%;
+            position: relative;
+        }
+
+        #school-logo {
+            width: 80px; 
+            height: 80px;
+            object-fit: contain;
+            margin-right: 15px;
+        }
+
+        h1 {
+            font-family: 'Arial Black', sans-serif; 
+            font-weight: 900; 
+            color: #800080;
+            font-size: 2.2em; 
+            margin: 0;
+            padding: 0 50px;
+        }
+
+        /* --- Hamburger Menu Styles --- */
+        /* --- Polling Booth Name (Top Left) --- */
+        .polling-booth-label {
+            position: absolute;
+            top: 0;
+            left: 0;
+            background: rgba(255,255,255,0.85);
+            border: 2px solid #800080;
+            border-radius: 6px;
+            padding: 4px 12px;
+            font-size: 0.85em;
+            font-weight: bold;
+            color: #800080;
+            z-index: 1001;
+            max-width: 200px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+            letter-spacing: 0.5px;
+        }
+        .polling-booth-label span { font-weight: normal; color: #333; }
+
+        .hamburger-menu {
+            position: absolute;
+            top: 0;
+            right: 0;
+            z-index: 1001;
+        }
+
+        .menu-icon {
+            font-size: 30px;
+            cursor: pointer;
+            color: #800080;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 5px 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            user-select: none;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 45px;
+            background-color: #f9f9f9;
+            min-width: 220px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            border-radius: 8px;
+            overflow: hidden;
+            z-index: 1002;
+        }
+
+        .dropdown-content a {
+            color: black;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            border-bottom: 1px solid #ddd;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .dropdown-content a:last-child {
+            border-bottom: none;
+        }
+
+        .dropdown-content a:hover {background-color: #f1f1f1;}
+        .dropdown-content .disabled-menu-item {
+            color: #aaa;
+            cursor: not-allowed;
+            pointer-events: none;
+            background-color: #eee;
+        }
+
+        /* Highlight scanner button when active */
+        .dropdown-content a.pulse-action {
+            background-color: #ffeb3b;
+            color: #d32f2f;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { background-color: #ffeb3b; }
+            50% { background-color: #ffd54f; }
+            100% { background-color: #ffeb3b; }
+        }
+
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 1200px; 
+            position: relative;
+        }
+
+        .dashboard-stats {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            max-width: 800px;
+            margin-bottom: 15px;
+        }
+
+        #total-votes, #timer {
+            background-color: #f0ad4e;
+            color: white;
+            padding: 8px 15px; 
+            border-radius: 5px;
+            font-size: 1.1em;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        #timer {
+            background-color: #5bc0de;
+        }
+
+        .evm-status-indicators {
+            display: flex;
+            justify-content: space-around;
+            width: 100%; 
+            margin-bottom: 5px; 
+        }
+
+        .status-indicator-container {
+            width: 45%; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .evm-ready-indicator {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background-color: red; 
+            margin-top: 5px; 
+            transition: background-color 0.3s ease;
+            box-shadow: 0 0 5px rgba(0,0,0,0.5);
+        }
+
+        .evm-ready-indicator.ready {
+            background-color: limegreen;
+            box-shadow: 0 0 10px limegreen;
+        }
+
+        .evm-and-confirmation-container {
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-start; 
+            width: 100%;
+            margin-bottom: 20px; 
+            flex-wrap: wrap; 
+            position: relative;
+            min-height: 300px;
+        }
+
+        /* --- EVM Lock Overlay (Strict Verification) --- */
+        .evm-lock-overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(4px);
+            z-index: 5;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border-radius: 10px;
+            border: 3px dashed #d9534f;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .evm-lock-overlay h2 {
+            color: #d9534f;
+            font-size: 2em;
+            margin-bottom: 10px;
+            margin-top: 0;
+        }
+        
+        .evm-lock-overlay button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.2em;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            transition: 0.2s;
+        }
+        
+        .evm-lock-overlay button:hover {
+            background-color: #0056b3;
+        }
+
+        .ballot-unit {
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            padding: 15px; 
+            box-shadow: 5px 5px 10px #888888;
+            width: 45%; 
+            min-width: 300px; 
+            margin: 10px 1%; 
+            box-sizing: border-box;
+            position: relative; 
+        }
+
+        .ballot-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 10px; 
+            text-align: center;
+            color: #800080;
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 5px;
+        }
+
+        .candidate-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px; 
+            padding: 8px 5px; 
+            border: 1px solid #d1d1d1; 
+            border-radius: 5px;
+            background-color: #fff; 
+        }
+
+        .candidate-number {
+            width: 25px; 
+            text-align: right;
+            margin-right: 10px; 
+            font-size: 0.9em;
+            color: #555;
+            flex-shrink: 0; 
+        }
+
+        .candidate-photo, .candidate-symbol-image {
+            width: 40px; 
+            height: 40px; 
+            border-radius: 5px;
+            object-fit: cover;
+            flex-shrink: 0; 
+        }
+        .candidate-photo {
+            margin-right: 10px;
+        }
+
+        .candidate-details {
+            display: flex;
+            align-items: center;
+            flex-grow: 1;
+            min-width: 0; 
+            margin-right: 5px; 
+        }
+
+        .candidate-name {
+            margin-right: 8px; 
+            text-transform: uppercase;
+            font-weight: bold;
+            white-space: nowrap; 
+            overflow: hidden;
+            text-overflow: ellipsis; 
+            max-width: 120px; 
+        }
+        
+        .candidate-symbol-image {
+            margin-left: auto; 
+            margin-right: 8px; 
+            object-fit: contain;
+        }
+
+        .vote-button-evm {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 12px; 
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 13px; 
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+            flex-shrink: 0; 
+            font-weight: bold;
+        }
+
+        .vote-button-evm:hover { background-color: #0056b3; }
+        .vote-button-evm:disabled { background-color: #ccc; cursor: not-allowed; }
+
+        .voted-indicator {
+            width: 12px; 
+            height: 12px; 
+            border-radius: 50%;
+            background-color: red;
+            margin-left: 8px; 
+            transition: background-color 0.3s ease; 
+            flex-shrink: 0; 
+        }
+
+        .voted-indicator.green {
+            background-color: limegreen;
+            box-shadow: 0 0 8px limegreen;
+        }
+
+        #results-section {
+            margin-top: 20px; 
+            text-align: center;
+            width: 100%;
+            max-width: 900px; 
+        }
+        #results-output { 
+            width: 100%;
+            overflow-x: auto; 
+        }
+        #results-section table {
+            width: 100%;
+            min-width: 600px; 
+            margin-top: 15px;
+            border-collapse: collapse;
+            background-color: #fff;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 25px; 
+        }
+        #results-section th, #results-section td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left; 
+            white-space: nowrap; 
+        }
+        #results-section th:nth-child(1), #results-section td:nth-child(1),
+        #results-section th:nth-child(3), #results-section td:nth-child(3) {
+            text-align: center; 
+        }
+        #results-section .winner-row {
+            background-color: #dff0d8; 
+            font-weight: bold;
+        }
+
+        .vote-confirmation-popup {
+            position: absolute; 
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(255, 255, 255, 0.98); 
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            z-index: 10; 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            border: 2px solid #800080;
+            min-width: 180px; 
+            max-width: 90%; 
+            width: fit-content; 
+        }
+
+        .vote-confirmation-popup .voted-message {
+            font-size: 1.3em;
+            color: #800080;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        
+        .vote-confirmation-popup .voted-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+            font-size: 1.1em;
+            text-transform: uppercase;
+        }
+
+        .vote-confirmation-popup .vote-indicator-popup-text { 
+            background-color: limegreen;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 5px;
+            font-size: 1em;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
+        .modal-panel, #settings-panel {
+            position: fixed;
+            top: 50%; 
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #fff;
+            padding: 25px;
+            border-radius: 10px; 
+            box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.6); /* Secure modal blocking background overlay */
+            z-index: 2000;
+            display: none;
+            max-height: 90vh; 
+            overflow-y: auto;
+            width: 90%;
+            max-width: 650px; 
+        }
+
+        .modal-panel h2, #settings-panel h2 { color: #800080; margin-top: 0; }
+        .modal-panel label, #settings-panel label { display: block; margin-bottom: 5px; font-weight: bold; }
+
+        .modal-panel input[type="text"], .modal-panel input[type="file"],
+        #settings-panel input[type="text"], #settings-panel input[type="file"], #settings-panel input[type="color"] { 
+            width: 100%; 
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        .modal-panel button, #settings-panel button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-right: 10px;
+            margin-top: 10px;
+        }
+
+        .modal-panel button:hover, #settings-panel button:hover { background-color: #0056b3; }
+        
+        .close-panel-btn { background-color: #666 !important; }
+        .close-panel-btn:hover { background-color: #444 !important; }
+
+        .generic-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        .generic-table th, .generic-table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        .generic-table th { background-color: #f2f2f2; }
+
+        /* Settings specific styles */
+        #settings-panel .candidate-setting-item { 
+            border: 1px solid #ddd; padding: 10px; margin-bottom:10px; border-radius: 5px;
+            background-color: #fbfbfb;
+        }
+        #settings-panel .candidate-group h3 { margin-top: 15px; margin-bottom: 10px; color: #800080; border-bottom: 1px solid #ccc; padding-bottom: 3px;}
+        #settings-panel button.remove-candidate-btn { background-color: #d9534f; }
+        #settings-panel .image-preview { max-width: 60px; max-height: 60px; border-radius: 5px; object-fit: cover; margin: 5px 0 10px; display: block; border: 1px solid #eee; }
+
+        .verification-badge {
+            background-color: #f8f9fa; border: 1px solid #ddd; padding: 10px;
+            border-radius: 5px; margin-top: 10px; text-align: center; font-weight: bold;
+        }
+
+        /* --- Print Friendly Voter IDs (A4 & Legal) --- */
+        .voter-cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .voter-card {
+            border: 2px dashed #800080;
+            padding: 10px;
+            border-radius: 8px;
+            background-color: #fff;
+            text-align: center;
+            font-size: 0.85em;
+            page-break-inside: avoid; 
+        }
+
+        .voter-card-title { font-weight: bold; color: #800080; margin-bottom: 5px; border-bottom: 1px solid #eee; padding-bottom: 3px; }
+        .qr-holder { display: flex; justify-content: center; margin: 8px 0; }
+
+        @media print {
+            @page {
+                size: auto; 
+                margin: 15mm;
+            }
+            body { background-color: #fff !important; padding: 0; margin: 0; }
+            body * { visibility: hidden; }
+            
+            #print-voter-panel, #print-voter-panel * { visibility: visible; }
+            
+            #print-voter-panel {
+                position: absolute; left: 0; top: 0;
+                width: 100%; max-width: 100%; box-shadow: none;
+                transform: none; padding: 0; max-height: none; overflow: visible;
+            }
+            
+            .no-print, .hamburger-menu { display: none !important; }
+            
+            .voter-cards-grid {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr); 
+                gap: 10mm;
+            }
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 768px) { 
+            .header { justify-content: flex-start; padding-right: 50px; }
+            h1 { font-size: 1.5em; padding: 0; }
+            .ballot-unit { width: 90%; margin: 10px auto; }
+            .dashboard-stats { flex-direction: column; align-items: center; gap: 10px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="polling-booth-label" id="booth-name-display" style="display:none;">🗳️ Booth: <span id="booth-name-text"></span></div>
+        <img id="school-logo" src="https://srnmehtaschool.com/wp-content/uploads/2024/02/logo.png" onerror="this.style.display='none';"> 
+        <h1>SRN MEHTA SCHOOL ELECTIONS</h1>
+        
+        <div class="hamburger-menu">
+            <div class="menu-icon" id="menu-icon" onclick="toggleMenu()">☰</div>
+            <div class="dropdown-content" id="dropdown-content">
+                <a id="menu-start-session">Start Voting Session</a>
+                <a id="menu-end-session" class="disabled-menu-item">End Voting Session</a>
+                <a id="menu-end-session-novotes" class="disabled-menu-item">End Session (No Votes Cast)</a>
+                <a id="menu-toggle-verification">🔍 Toggle Verification Mode</a>
+                <a id="menu-verify-voter">Verify Voter ID</a>
+                <a id="menu-show-results">Show Results</a>
+                <a id="menu-voters">Voters Enrollment</a>
+                <a id="menu-print-ids">Print Voter IDs</a>
+                <a id="menu-settings">Settings</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="dashboard-stats">
+            <div id="total-votes">Total Votes: 0</div>
+            <div id="timer">Time: 00:00:00</div>
+        </div>
+
+        <div class="evm-status-indicators">
+            <div class="status-indicator-container">
+                <div class="evm-ready-indicator" id="head-boy-ready-indicator"></div>
+            </div>
+            <div class="status-indicator-container">
+                <div class="evm-ready-indicator" id="head-girl-ready-indicator"></div>
+            </div>
+        </div>
+
+        <div class="evm-and-confirmation-container">
+            <div id="evm-lock-overlay" class="evm-lock-overlay" style="display: none;">
+                <h2>BALLOT LOCKED</h2>
+                <p>Voting is active, but a voter identity is required.</p>
+                <button onclick="openScannerFromOverlay()">Scan QR Voter ID</button>
+            </div>
+
+            <div class="ballot-unit" id="head-boy-evm">
+                <div class="ballot-title">Head Boy Election</div>
+                <div id="head-boy-ballot"></div>
+            </div>
+
+            <div class="ballot-unit" id="head-girl-evm">
+                <div class="ballot-title">Head Girl Election</div>
+                <div id="head-girl-ballot"></div>
+            </div>
+        </div>
+
+        <div id="results-section" style="display: none;">
+             <div id="results-output"></div> 
+        </div>
+    </div>
+    
+    <div id="settings-panel">
+        <h2 style="display:inline-block; margin-right: 20px;">Settings</h2>
+        <button class="close-panel-btn" style="float:right;">Close</button>
+        <div style="clear:both;"></div>
+
+        <div class="candidate-group">
+            <h3>System Admin</h3>
+            <button id="open-vault-btn" style="background-color: #333; margin-top:0;">Open Admin Vault Ledger</button>
+        </div>
+
+        <div class="candidate-group">
+            <h3>🔑 Change Admin Password</h3>
+            <label>Current Password:</label>
+            <input type="password" id="change-pwd-current" placeholder="Enter current password">
+            <label>New Password:</label>
+            <input type="password" id="change-pwd-new" placeholder="Enter new password">
+            <label>Confirm New Password:</label>
+            <input type="password" id="change-pwd-confirm" placeholder="Re-enter new password">
+            <button id="change-pwd-btn" style="background-color:#e67e22;">Change Password</button>
+        </div>
+
+        <div class="candidate-group">
+            <h3>🏫 Polling Booth Name</h3>
+            <label>Booth Name (alphanumeric only):</label>
+            <input type="text" id="booth-name-input" placeholder="e.g. BOOTH1A or Room101" maxlength="30">
+            <small style="color:#666;">Displayed at top-left corner. Letters and numbers only.</small>
+        </div>
+
+        <div class="candidate-group">
+            <h3>🔍 Voter Verification Mode</h3>
+            <p style="font-size:0.9em; color:#555; margin:5px 0;">Toggle whether QR/Voter ID verification is required before voting. Can be changed during an active session.</p>
+            <div style="display:flex; align-items:center; gap:15px; margin-top:8px;">
+                <label style="font-weight:bold; margin:0;">
+                    <input type="radio" name="verification-mode" id="verify-mode-on" value="on"> 
+                    &nbsp;✅ Verification Required (Strict)
+                </label>
+            </div>
+            <div style="display:flex; align-items:center; gap:15px; margin-top:6px;">
+                <label style="font-weight:bold; margin:0;">
+                    <input type="radio" name="verification-mode" id="verify-mode-off" value="off">
+                    &nbsp;⚡ No Verification (Open Voting)
+                </label>
+            </div>
+            <p id="verify-mode-status" style="margin-top:8px; font-size:0.85em; padding:6px 10px; border-radius:4px; background:#eef;"></p>
+        </div>
+
+        <div class="candidate-group">
+            <h3>School Logo</h3>
+            <label>Upload School Logo (Image):</label>
+            <input type="file" id="school-logo-upload" accept="image/*">
+            <img id="current-logo-preview" src="" class="image-preview" onerror="this.src='https://placehold.co/60x60/eeeeee/333333?text=No+Logo'; this.onerror=null;">
+        </div>
+
+        <div class="candidate-group">
+            <h3>Audio Settings</h3>
+            <label>Upload Custom Beep Sound (MP3):</label>
+            <input type="file" id="beep-sound-upload" accept="audio/*">
+        </div>
+        
+        <div class="candidate-group">
+            <h3>Appearance Settings</h3>
+            <label>Page Background Color:</label>
+            <input type="color" id="background-color-picker" value="#6DCAD6" style="height:40px; padding:2px;">
+        </div>
+
+        <div class="candidate-group">
+            <h3>Head Boy Candidates</h3>
+            <button id="add-head-boy-candidate" style="margin-bottom: 10px;">Add Head Boy Candidate</button>
+            <div id="head-boy-settings"></div>
+        </div>
+        <div class="candidate-group">
+            <h3>Head Girl Candidates</h3>
+            <button id="add-head-girl-candidate" style="margin-bottom: 10px;">Add Head Girl Candidate</button>
+            <div id="head-girl-settings"></div>
+        </div>
+        <button id="save-settings" style="width:100%; background-color:#28a745; font-size:1.1em; padding:15px; margin-top:20px;">Save All Settings</button>
+    </div>
+
+    <div id="voters-panel" class="modal-panel">
+        <h2>Voters Enrollment Management</h2>
+        <label>Upload Voters List (Excel):</label>
+        <input type="file" id="voter-excel-upload" accept=".xlsx, .xls">
+        <p style="font-size:0.85em; color:#666;">Excel must contain headers: <b>Name</b>, <b>Roll No</b>, <b>Grade</b>, <b>Section</b></p>
+        <button id="clear-voters-btn" style="background-color: #d9534f;">Clear Voter Records</button>
+        <button class="close-panel-btn">Close</button>
+        
+        <h3 style="margin-top:20px;">Enrolled Voters List (<span id="voter-count-display">0</span>)</h3>
+        <div style="overflow-x:auto; max-height:250px;">
+            <table class="generic-table" id="voters-display-table">
+                <thead>
+                    <tr><th>Roll No</th><th>Student Name</th><th>Grade</th><th>Section</th><th>Status</th></tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="admin-vault-panel" class="modal-panel">
+        <h2>Admin Vault Audit Ledger</h2>
+        <p style="font-size:0.9em; color:#555;">Live voter audit logging history sequence:</p>
+        <div style="overflow-x:auto; max-height:300px;">
+            <table class="generic-table" id="vault-ledger-table">
+                <thead>
+                    <tr><th>Timestamp</th><th>Roll No</th><th>Class Info</th><th>Head Boy Selection</th><th>Head Girl Selection</th></tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+        <button class="close-panel-btn" style="margin-top:15px;">Close Vault</button>
+    </div>
+
+    <div id="print-voter-panel" class="modal-panel" style="max-width: 900px;">
+        <h2 class="no-print">Print QR Code Enabled Voter IDs</h2>
+        <p class="no-print" style="color:#555;">Cards auto-format for A4/Legal prints.</p>
+        <button id="trigger-print-btn" class="no-print" style="background-color:#5cb85c;">Print Cards</button>
+        <button class="close-panel-btn no-print">Close</button>
+        <div class="voter-cards-grid" id="voter-cards-output"></div>
+    </div>
+
+    <div id="verify-voter-panel" class="modal-panel">
+        <h2>Scan & Verify Student Identity</h2>
+        <div id="qr-camera-scanner" style="width: 100%; max-width: 450px; margin: 0 auto; background: #000;"></div>
+        <div class="verification-badge" id="verification-status-badge">SYSTEM STATUS: READY TO SCAN</div>
+        <button class="close-panel-btn" id="stop-scanner-btn" style="margin-top:15px; width:100%;">Close Scanner</button>
+    </div>
+
+    <audio id="beep-sound">
+        <source src="http://www.simphonics.com/library/WaveFiles/Production%20Wavefiles/FS-98/mrsdahl.wav" type="audio/mpeg"> 
+    </audio>
+
+    <script>
+        // --- Constants and State Management variables ---
+        const headBoyBallotDiv = document.getElementById('head-boy-ballot');
+        const headGirlBallotDiv = document.getElementById('head-girl-ballot');
+        const headBoyEVM = document.getElementById('head-boy-evm'); 
+        const headGirlEVM = document.getElementById('head-girl-evm'); 
+        const totalVotesDisplay = document.getElementById('total-votes');
+        const timerDisplay = document.getElementById('timer');
+        let beepSound = document.getElementById('beep-sound'); 
+
+        const settingsPanel = document.getElementById('settings-panel');
+        const saveSettingsButton = document.getElementById('save-settings');
+        const headBoySettingsDiv = document.getElementById('head-boy-settings');
+        const headGirlSettingsDiv = document.getElementById('head-girl-settings');
+        const resultsSectionDiv = document.getElementById('results-section');
+        const resultsOutputDiv = document.getElementById('results-output');
+
+        let headBoyCandidates = [];
+        let headGirlCandidates = [];
+        
+        let overallVotingActive = false; 
+        let currentUserVotedHB = false; 
+        let currentUserVotedHG = false; 
+        let isProcessingVote = false; 
+
+        let sessionPassword = null; 
+        let sessionStartTime;
+        let sessionEndTime = null; 
+        let timerInterval;
+
+        let activeHbPopup = null;
+        let activeHgPopup = null;
+
+        let votersList = [];
+        let auditVaultLedger = [];
+        let html5QrcodeScanner = null;
+        let activeVerifiedVoter = null; 
+        let currentVoterChoices = { headboy: "N/A", headgirl: "N/A" };
+        let verificationRequired = true; // NEW: voter ID verification toggle
+        let boothName = '';              // NEW: polling booth name
+
+        // --- Menu UI Logic Toggle ---
+        function toggleMenu() {
+            const menu = document.getElementById("dropdown-content");
+            menu.style.display = menu.style.display === "block" ? "none" : "block";
+        }
+        
+        document.addEventListener('click', function(event) {
+            const menu = document.getElementById("dropdown-content");
+            const icon = document.getElementById("menu-icon");
+            if(event.target !== menu && event.target !== icon && !menu.contains(event.target)){
+                menu.style.display = "none";
+            }
+        });
+
+        // --- File Reader Process Base64 utilities ---
+        const fileToBase64 = (file) => new Promise((resolve, reject) => {
+            if (!file) { resolve(null); return; }
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = () => resolve(null); 
+        });
+
+        // --- School Logo Handler Config ---
+        document.getElementById('school-logo-upload').addEventListener('change', async (e) => {
+            if (e.target.files[0]) {
+                const base64Logo = await fileToBase64(e.target.files[0]);
+                document.getElementById('current-logo-preview').src = base64Logo;
+                document.getElementById('school-logo').src = base64Logo;
+                document.getElementById('school-logo').style.display = 'inline-block';
+                saveDataToLocalStorage();
+            }
+        });
+
+        // --- Custom Beep Audio Handler ---
+        document.getElementById('beep-sound-upload').addEventListener('change', async (e) => {
+            if (e.target.files[0]) {
+                const base64Audio = await fileToBase64(e.target.files[0]);
+                beepSound.src = base64Audio;
+                saveDataToLocalStorage();
+            }
+        });
+
+        // --- LocalStorage Logic ---
+        function saveDataToLocalStorage() {
+            const data = {
+                headBoyCandidates: headBoyCandidates,
+                headGirlCandidates: headGirlCandidates,
+                overallVotingActive: overallVotingActive,
+                sessionPassword: sessionPassword,
+                sessionStartTime: sessionStartTime ? sessionStartTime.toISOString() : null,
+                sessionEndTime: sessionEndTime ? sessionEndTime.toISOString() : null, 
+                beepSoundSrc: beepSound.src.startsWith('data:') ? beepSound.src : null, 
+                schoolLogoSrc: document.getElementById('school-logo').src.startsWith('data:') ? document.getElementById('school-logo').src : null,
+                backgroundColor: document.getElementById('background-color-picker').value,
+                votersList: votersList,
+                auditVaultLedger: auditVaultLedger,
+                activeVerifiedVoter: (activeVerifiedVoter && activeVerifiedVoter.rollNo === 'OPEN') ? null : activeVerifiedVoter,
+                verificationRequired: verificationRequired,
+                boothName: boothName
+            };
+            localStorage.setItem('electionDataSRNMehtaV4', JSON.stringify(data)); 
+        }
+
+        function loadDataFromLocalStorage() {
+            const savedDataJSON = localStorage.getItem('electionDataSRNMehtaV4');
+            if (savedDataJSON) {
+                const savedData = JSON.parse(savedDataJSON);
+                const ensureData = (c) => ({ ...c, votes: c.votes || 0, photo: c.photo || '', symbol: c.symbol || '' });
+                headBoyCandidates = (savedData.headBoyCandidates || []).map(ensureData);
+                headGirlCandidates = (savedData.headGirlCandidates || []).map(ensureData);
+                
+                overallVotingActive = savedData.overallVotingActive || false;
+                sessionPassword = savedData.sessionPassword || null;
+                if (savedData.sessionStartTime) sessionStartTime = new Date(savedData.sessionStartTime);
+                if (savedData.sessionEndTime) sessionEndTime = new Date(savedData.sessionEndTime);
+                
+                if (savedData.backgroundColor) {
+                    document.body.style.backgroundColor = savedData.backgroundColor;
+                    document.getElementById('background-color-picker').value = savedData.backgroundColor;
+                }
+                if (savedData.schoolLogoSrc) {
+                    document.getElementById('school-logo').src = savedData.schoolLogoSrc;
+                    document.getElementById('school-logo').style.display = 'inline-block';
+                    document.getElementById('current-logo-preview').src = savedData.schoolLogoSrc;
+                }
+                if (savedData.beepSoundSrc) {
+                    beepSound.src = savedData.beepSoundSrc;
+                }
+                
+                votersList = savedData.votersList || [];
+                auditVaultLedger = savedData.auditVaultLedger || [];
+                activeVerifiedVoter = savedData.activeVerifiedVoter || null;
+                verificationRequired = (savedData.verificationRequired !== undefined) ? savedData.verificationRequired : true;
+                boothName = savedData.boothName || '';
+                updateBoothNameDisplay();
+                updateVerificationModeUI();
+            } else { 
+                headBoyCandidates = [{ id: 'hb1', name: 'BOY 1', photo: '', symbol: '', votes: 0 }];
+                headGirlCandidates = [{ id: 'hg1', name: 'GRL 1', photo: '', symbol: '', votes: 0 }];
+            }
+            updateTotalVotesDisplay(); 
+        }
+        
+        // --- Core Status Layout Sync States ---
+        function updateUIBasedOnState() {
+            const menuStart = document.getElementById('menu-start-session');
+            const menuEnd = document.getElementById('menu-end-session');
+            const menuEndNoVotes = document.getElementById('menu-end-session-novotes');
+            const menuResults = document.getElementById('menu-show-results');
+            const menuVerify = document.getElementById('menu-verify-voter');
+            const lockOverlay = document.getElementById('evm-lock-overlay');
+
+            if (overallVotingActive) {
+                menuStart.classList.add('disabled-menu-item');
+                menuEnd.classList.remove('disabled-menu-item');
+                menuEndNoVotes.classList.remove('disabled-menu-item');
+                menuResults.classList.add('disabled-menu-item');
+                
+                if (sessionStartTime && !sessionEndTime) startTimer(); 
+
+                // Verification-mode-aware lock logic
+                if (!verificationRequired) {
+                    // Open voting: no lock overlay, ensure OPEN guest voter is set
+                    lockOverlay.style.display = 'none';
+                    if (!activeVerifiedVoter || activeVerifiedVoter.rollNo !== 'OPEN') {
+                        activeVerifiedVoter = { rollNo: 'OPEN', name: 'OPEN VOTE', grade: '-', section: '-' };
+                    }
+                    menuVerify.classList.remove('pulse-action');
+                    enableVoteButtons();
+                    if (!isProcessingVote && !currentUserVotedHB && !currentUserVotedHG) setEVMReadyIndicators(true, true);
+                    else if (!isProcessingVote && currentUserVotedHB && !currentUserVotedHG) setEVMReadyIndicators(false, true);
+                    else if (!isProcessingVote && !currentUserVotedHB && currentUserVotedHG) setEVMReadyIndicators(true, false);
+                    else setEVMReadyIndicators(false, false);
+                } else {
+                    menuVerify.classList.add('pulse-action'); 
+                    if (!activeVerifiedVoter) {
+                        lockOverlay.style.display = 'flex';
+                        disableVoteButtons();
+                        setEVMReadyIndicators(false, false);
+                    } else {
+                        lockOverlay.style.display = 'none';
+                        enableVoteButtons();
+                        if (!isProcessingVote && !currentUserVotedHB && !currentUserVotedHG) setEVMReadyIndicators(true, true);
+                        else if (!isProcessingVote && currentUserVotedHB && !currentUserVotedHG) setEVMReadyIndicators(false, true); 
+                        else if (!isProcessingVote && !currentUserVotedHB && currentUserVotedHG) setEVMReadyIndicators(true, false);
+                        else setEVMReadyIndicators(false, false);
+                    }
+                }
+            } else {
+                menuStart.classList.remove('disabled-menu-item');
+                menuEnd.classList.add('disabled-menu-item');
+                menuEndNoVotes.classList.add('disabled-menu-item');
+                menuResults.classList.remove('disabled-menu-item');
+                menuVerify.classList.remove('pulse-action');
+                
+                lockOverlay.style.display = 'none';
+                if (timerInterval) clearInterval(timerInterval);
+                timerDisplay.textContent = sessionEndTime ? "Time: Session Ended" : "Time: 00:00:00"; 
+                setEVMReadyIndicators(false, false); 
+                disableVoteButtons(); 
+            }
+        }
+
+        function enableVoteButtons() {
+             document.querySelectorAll('.vote-button-evm').forEach(button => {
+                 const type = button.dataset.type;
+                 if (type === 'headboy' && currentUserVotedHB) button.disabled = true;
+                 else if (type === 'headgirl' && currentUserVotedHG) button.disabled = true;
+                 else button.disabled = false;
+             });
+        }
+
+        function disableVoteButtons() {
+             document.querySelectorAll('.vote-button-evm').forEach(button => button.disabled = true);
+        }
+
+        // --- Ballot Unit UI Engine Rendering ---
+        function createBallot(candidatesArray, ballotDiv, candidateType) {
+            ballotDiv.innerHTML = ''; 
+            candidatesArray.forEach((candidate, i) => {
+                const row = document.createElement('div');
+                row.classList.add('candidate-row');
+                const photoSrc = candidate.photo || `https://placehold.co/40x40/ccc/333?text=${candidateType.substring(0,2).toUpperCase()}${i+1}`;
+                const symbolSrc = candidate.symbol || `https://placehold.co/40x40/999/FFF?text=S${i+1}`;
+
+                row.innerHTML = `
+                    <div class="candidate-number">${i + 1}</div>
+                    <div class="candidate-details">
+                        <img src="${photoSrc}" class="candidate-photo">
+                        <span class="candidate-name">${candidate.name || `CANDIDATE ${i+1}`}</span>
+                        <img src="${symbolSrc}" class="candidate-symbol-image">
+                    </div>
+                    <button class="vote-button-evm" data-index="${i}" data-type="${candidateType}">Vote</button>
+                    <div class="voted-indicator" id="${candidateType}-indicator-${i}"></div>
+                `;
+                ballotDiv.appendChild(row);
+            });
+            document.querySelectorAll('.vote-button-evm').forEach(button => {
+                 button.onclick = handleVote; 
+            });
+        }
+
+        // --- Settings Sub-rendering Panel View adjustments ---
+        function renderSettings(candidatesArray, settingsDiv, type) {
+            settingsDiv.innerHTML = '';
+            candidatesArray.forEach((candidate, index) => {
+                const itemDiv = document.createElement('div');
+                itemDiv.classList.add('candidate-setting-item');
+                
+                const photoPreview = candidate.photo || 'https://placehold.co/60x60/eeeeee/333333?text=No+Photo';
+                const symbolPreview = candidate.symbol || 'https://placehold.co/60x60/eeeeee/333333?text=No+Symbol';
+
+                itemDiv.innerHTML = `
+                    <h4>Candidate ${index + 1}</h4>
+                    <label>Name:</label>
+                    <input type="text" id="${type}-name-${index}" value="${candidate.name || ''}" class="cand-name-input">
+                    
+                    <label>Candidate Photo:</label>
+                    <input type="file" id="${type}-photo-${index}" accept="image/*" class="photo-upload-input">
+                    <img id="${type}-photo-preview-${index}" src="${photoPreview}" class="image-preview">
+                    
+                    <label>Candidate Logo/Symbol:</label>
+                    <input type="file" id="${type}-symbol-${index}" accept="image/*" class="symbol-upload-input">
+                    <img id="${type}-symbol-preview-${index}" src="${symbolPreview}" class="image-preview">
+                    
+                    <button class="remove-candidate-btn" data-type="${type}" data-index="${index}">Remove Candidate</button>
+                `;
+                settingsDiv.appendChild(itemDiv);
+
+                // Image change triggers
+                document.getElementById(`${type}-photo-${index}`).addEventListener('change', async (e) => {
+                    if (e.target.files[0]) {
+                        const b64 = await fileToBase64(e.target.files[0]);
+                        candidate.photo = b64;
+                        document.getElementById(`${type}-photo-preview-${index}`).src = b64;
+                        saveDataToLocalStorage();
+                    }
+                });
+
+                document.getElementById(`${type}-symbol-${index}`).addEventListener('change', async (e) => {
+                    if (e.target.files[0]) {
+                        const b64 = await fileToBase64(e.target.files[0]);
+                        candidate.symbol = b64;
+                        document.getElementById(`${type}-symbol-preview-${index}`).src = b64;
+                        saveDataToLocalStorage();
+                    }
+                });
+            });
+            
+            // Re-bind click event handlers for removal
+            settingsDiv.querySelectorAll('.remove-candidate-btn').forEach(btn => {
+                btn.onclick = (e) => {
+                    const idx = parseInt(e.target.dataset.index);
+                    if (type === 'headboy' && headBoyCandidates.length > 1) { 
+                        headBoyCandidates.splice(idx, 1); 
+                        renderSettings(headBoyCandidates, headBoySettingsDiv, 'headboy'); 
+                    } else if (type === 'headgirl' && headGirlCandidates.length > 1) { 
+                        headGirlCandidates.splice(idx, 1); 
+                        renderSettings(headGirlCandidates, headGirlSettingsDiv, 'headgirl'); 
+                    } else {
+                        alert('Minimum of 1 candidate required.');
+                    }
+                };
+            });
+        }
+
+        document.getElementById('add-head-boy-candidate').onclick = () => { headBoyCandidates.push({id: Date.now(), name: '', votes: 0, photo:'', symbol:''}); renderSettings(headBoyCandidates, headBoySettingsDiv, 'headboy'); };
+        document.getElementById('add-head-girl-candidate').onclick = () => { headGirlCandidates.push({id: Date.now(), name: '', votes: 0, photo:'', symbol:''}); renderSettings(headGirlCandidates, headGirlSettingsDiv, 'headgirl'); };
+
+        saveSettingsButton.addEventListener('click', () => {
+            headBoyCandidates.forEach((c, i) => c.name = document.getElementById(`headboy-name-${i}`)?.value.trim().toUpperCase() || 'UNNAMED');
+            headGirlCandidates.forEach((c, i) => c.name = document.getElementById(`headgirl-name-${i}`)?.value.trim().toUpperCase() || 'UNNAMED');
+            document.body.style.backgroundColor = document.getElementById('background-color-picker').value; 
+
+            // Booth name: alphanumeric only
+            const rawBooth = document.getElementById('booth-name-input').value.trim();
+            const cleanBooth = rawBooth.replace(/[^a-zA-Z0-9]/g, '');
+            if (rawBooth !== cleanBooth) {
+                alert('Booth name can only contain letters and numbers. Special characters have been removed.');
+            }
+            boothName = cleanBooth.toUpperCase();
+            updateBoothNameDisplay();
+
+            // Verification mode
+            const modeVal = document.querySelector('input[name="verification-mode"]:checked')?.value;
+            if (modeVal) {
+                verificationRequired = (modeVal === 'on');
+                if (!verificationRequired && overallVotingActive) {
+                    activeVerifiedVoter = { rollNo: 'OPEN', name: 'OPEN VOTE', grade: '-', section: '-' };
+                } else if (verificationRequired && overallVotingActive) {
+                    activeVerifiedVoter = null;
+                }
+            }
+            updateVerificationModeUI();
+
+            saveDataToLocalStorage(); 
+            createBallot(headBoyCandidates, headBoyBallotDiv, 'headboy'); 
+            createBallot(headGirlCandidates, headGirlBallotDiv, 'headgirl');
+            closeAllPanels();
+            updateUIBasedOnState(); 
+            alert('Settings Saved Successfully.');
+        });
+
+        // --- Core Realtime Electronic Vote Registration Sequence ---
+        function handleVote(event) {
+            if (isProcessingVote || !overallVotingActive || !activeVerifiedVoter) return;
+            const btn = event.target;
+            const idx = parseInt(btn.dataset.index);
+            const type = btn.dataset.type; 
+
+            const arr = type === 'headboy' ? headBoyCandidates : headGirlCandidates;
+            const hasVoted = type === 'headboy' ? currentUserVotedHB : currentUserVotedHG;
+            const evm = type === 'headboy' ? headBoyEVM : headGirlEVM;
+
+            if (hasVoted) return; 
+
+            isProcessingVote = true; 
+            disableVoteButtons(); 
+            setEVMReadyIndicators(false, false); 
+            arr[idx].votes++; 
+            currentVoterChoices[type] = arr[idx].name;
+            saveDataToLocalStorage(); 
+            updateTotalVotesDisplay(); 
+
+            document.getElementById(`${type}-indicator-${idx}`).classList.add('green');
+            if (beepSound) beepSound.play().catch(e => console.log("Audio play blocked."));
+
+            if (type === 'headboy') currentUserVotedHB = true;
+            else currentUserVotedHG = true;
+
+            showVoteConfirmationPopup(evm, arr[idx], type);
+
+            setTimeout(() => {
+                hideVoteConfirmationPopup(type); 
+                isProcessingVote = false; 
+
+                if (currentUserVotedHB && currentUserVotedHG) {
+                    setTimeout(resetForNextVoter, 500);
+                } else {
+                    enableVoteButtons(); 
+                    document.getElementById(`${type}-indicator-${idx}`).classList.remove('green');
+                    if (type === 'headboy') setEVMReadyIndicators(false, true); 
+                    else setEVMReadyIndicators(true, false); 
+                }
+            }, 2500);
+        }
+
+        function showVoteConfirmationPopup(parentEVM, candidate, type) {
+            const popup = document.createElement('div');
+            popup.classList.add('vote-confirmation-popup');
+            popup.innerHTML = `
+                <div class="voted-message">You Voted For</div>
+                <div class="voted-name">${candidate.name.toUpperCase()}</div>
+                <div class="vote-indicator-popup-text">VOTED!</div>
+            `;
+            parentEVM.appendChild(popup);
+            if (type === 'headboy') activeHbPopup = popup; else activeHgPopup = popup;
+        }
+
+        function hideVoteConfirmationPopup(type) {
+            if (type === 'headboy' && activeHbPopup) { activeHbPopup.remove(); activeHbPopup = null; }
+            if (type === 'headgirl' && activeHgPopup) { activeHgPopup.remove(); activeHgPopup = null; }
+        }
+
+        function resetForNextVoter() {
+            if (activeVerifiedVoter && activeVerifiedVoter.rollNo !== 'OPEN') {
+                auditVaultLedger.push({
+                    timestamp: new Date().toLocaleTimeString(),
+                    rollNo: activeVerifiedVoter.rollNo,
+                    meta: `${activeVerifiedVoter.grade}-${activeVerifiedVoter.section}`,
+                    hb: currentVoterChoices.headboy, 
+                    hg: currentVoterChoices.headgirl
+                });
+                let match = votersList.find(v => String(v.rollNo) === String(activeVerifiedVoter.rollNo));
+                if (match) match.voted = true;
+            } else if (activeVerifiedVoter && activeVerifiedVoter.rollNo === 'OPEN') {
+                auditVaultLedger.push({
+                    timestamp: new Date().toLocaleTimeString(),
+                    rollNo: 'OPEN',
+                    meta: 'No Verification',
+                    hb: currentVoterChoices.headboy, 
+                    hg: currentVoterChoices.headgirl
+                });
+            }
+
+            currentUserVotedHB = false; 
+            currentUserVotedHG = false;
+            currentVoterChoices = { headboy: "N/A", headgirl: "N/A" };
+
+            // In open mode, immediately re-arm the voter so the next person can vote
+            if (!verificationRequired && overallVotingActive) {
+                activeVerifiedVoter = { rollNo: 'OPEN', name: 'OPEN VOTE', grade: '-', section: '-' };
+            } else {
+                activeVerifiedVoter = null;
+            }
+            
+            saveDataToLocalStorage(); 
+            document.querySelectorAll('.voted-indicator.green').forEach(i => i.classList.remove('green'));
+            updateUIBasedOnState(); 
+        }
+
+        function updateTotalVotesDisplay() {
+            const sum = headBoyCandidates.reduce((s, c) => s + c.votes, 0) + headGirlCandidates.reduce((s, c) => s + c.votes, 0);
+            totalVotesDisplay.textContent = `Total Votes: ${sum}`;
+        }
+
+        function setEVMReadyIndicators(hb, hg) {
+            document.getElementById('head-boy-ready-indicator').classList.toggle('ready', hb);
+            document.getElementById('head-girl-ready-indicator').classList.toggle('ready', hg);
+        }
+
+        // --- Panel Control Routing Hooks ---
+        function closeAllPanels() {
+            document.querySelectorAll('.modal-panel, #settings-panel').forEach(p => p.style.display = 'none');
+            stopScanner();
+            document.getElementById("dropdown-content").style.display = "none";
+            resultsSectionDiv.style.display = 'none';
+        }
+        document.querySelectorAll('.close-panel-btn').forEach(btn => btn.onclick = () => { closeAllPanels(); updateUIBasedOnState(); });
+
+        function verifyAdmin(callback) {
+            if (!sessionPassword) {
+                const p = prompt('Set Admin Password:');
+                if (p) { sessionPassword = p; saveDataToLocalStorage(); callback(); }
+            } else {
+                if (prompt('Enter Admin Password:') === sessionPassword) callback();
+                else alert('Incorrect Password!');
+            }
+        }
+
+        // Menu Click Triggers
+        document.getElementById('menu-settings').onclick = () => verifyAdmin(() => { 
+            closeAllPanels(); 
+            renderSettings(headBoyCandidates, headBoySettingsDiv, 'headboy'); 
+            renderSettings(headGirlCandidates, headGirlSettingsDiv, 'headgirl'); 
+            // Pre-fill booth name
+            document.getElementById('booth-name-input').value = boothName;
+            // Sync verification mode radios
+            updateVerificationModeUI();
+            // Clear password fields
+            document.getElementById('change-pwd-current').value = '';
+            document.getElementById('change-pwd-new').value = '';
+            document.getElementById('change-pwd-confirm').value = '';
+            settingsPanel.style.display = 'block'; 
+        });
+        document.getElementById('open-vault-btn').onclick = () => { closeAllPanels(); document.getElementById('admin-vault-panel').style.display = 'block'; renderVaultLedger(); };
+        document.getElementById('menu-voters').onclick = () => verifyAdmin(() => { closeAllPanels(); document.getElementById('voters-panel').style.display = 'block'; renderVotersTable(); });
+        document.getElementById('menu-print-ids').onclick = () => verifyAdmin(() => { closeAllPanels(); document.getElementById('print-voter-panel').style.display = 'block'; generateVoterCards(); });
+        
+        document.getElementById('menu-start-session').onclick = () => verifyAdmin(() => {
+            if(confirm("Start new session? All running votes data will be reset.")) {
+                headBoyCandidates.forEach(c => c.votes = 0); headGirlCandidates.forEach(c => c.votes = 0);
+                overallVotingActive = true; sessionStartTime = new Date(); sessionEndTime = null;
+                activeVerifiedVoter = null; auditVaultLedger = []; votersList.forEach(v => v.voted = false);
+                closeAllPanels(); saveDataToLocalStorage(); updateUIBasedOnState(); 
+                createBallot(headBoyCandidates, headBoyBallotDiv, 'headboy'); 
+                createBallot(headGirlCandidates, headGirlBallotDiv, 'headgirl');
+                updateTotalVotesDisplay();
+            }
+        });
+        
+        document.getElementById('menu-end-session').onclick = () => verifyAdmin(() => {
+            if(confirm("Are you sure you want to end this voting session?")) { overallVotingActive = false; sessionEndTime = new Date(); closeAllPanels(); saveDataToLocalStorage(); updateUIBasedOnState(); }
+        });
+        
+        document.getElementById('menu-show-results').onclick = () => verifyAdmin(() => { closeAllPanels(); showResults(); });
+
+        // --- Clear Voter Records Event Handler Hook (Fixed) ---
+        document.getElementById('clear-voters-btn').onclick = () => {
+            if(confirm("Are you absolute sure you want to completely clear all enrolled student voters information lists?")) {
+                votersList = [];
+                saveDataToLocalStorage();
+                renderVotersTable();
+                alert("Voter enrollment clean sweep executed successfully.");
+            }
+        };
+
+        // --- QR Scanner / Verification Engines ---
+        document.getElementById('menu-verify-voter').onclick = () => {
+            if(!overallVotingActive) { alert("Session not active currently."); return; }
+            closeAllPanels();
+            document.getElementById('verify-voter-panel').style.display = 'block';
+            startScanner();
+        };
+
+        function openScannerFromOverlay() {
+            document.getElementById('verify-voter-panel').style.display = 'block';
+            startScanner();
+        }
+
+        function startScanner() {
+            const badge = document.getElementById('verification-status-badge');
+            badge.textContent = "INITIALIZING CAMERA...";
+            badge.style.backgroundColor = '#f8f9fa';
+            
+            if (html5QrcodeScanner) {
+                try { html5QrcodeScanner.stop().catch(e => {}); } catch (e) {}
+            }
+
+            html5QrcodeScanner = new Html5Qrcode("qr-camera-scanner");
+
+            Html5Qrcode.getCameras().then(devices => {
+                if (devices && devices.length) {
+                    let cameraId = devices[0].id; 
+                    for (let i = 0; i < devices.length; i++) {
+                        let label = devices[i].label.toLowerCase();
+                        if (label.includes("back") || label.includes("environment") || label.includes("rear")) {
+                            cameraId = devices[i].id;
+                            break;
+                        }
+                    }
+
+                    html5QrcodeScanner.start(
+                        cameraId, 
+                        { fps: 10, qrbox: { width: 250, height: 250 } },
+                        (decodedText) => {
+                            try {
+                                const parsed = JSON.parse(decodedText);
+                                let student = votersList.find(v => String(v.rollNo) === String(parsed.rollNo));
+                                if (!student) throw new Error("Not Found");
+                                if (student.voted) { 
+                                    badge.textContent = "ALREADY VOTED!"; 
+                                    badge.style.backgroundColor = 'red'; 
+                                    return; 
+                                }
+                                
+                                activeVerifiedVoter = student;
+                                badge.textContent = `GRANTED: ${student.name.toUpperCase()}`; 
+                                badge.style.backgroundColor = 'green';
+                                if(beepSound) beepSound.play().catch(e => {});
+                                
+                                setTimeout(() => { closeAllPanels(); updateUIBasedOnState(); }, 1500);
+                            } catch(e) { 
+                                badge.textContent = "INVALID OR UNRECOGNIZED QR CARD"; 
+                                badge.style.backgroundColor = 'red'; 
+                            }
+                        },
+                        (errorMessage) => {}
+                    ).catch(err => {
+                        badge.textContent = "CAMERA ERROR ACCESSIBILITY";
+                    });
+                } else {
+                    badge.textContent = "NO CAMERAS DETECTED";
+                }
+            }).catch(err => {
+                badge.textContent = "PERMISSION OR SECURITY PROTOCOL BLOCKED";
+                alert("Camera permission block error. Ensure running context is secure (localhost/HTTPS) or permissions are allowed.");
+            });
+        }
+
+        function stopScanner() { 
+            if(html5QrcodeScanner) {
+                html5QrcodeScanner.stop().catch(e=>{}); 
+            }
+        }
+
+        // --- Render Lists Processing functions ---
+        function renderVotersTable() {
+            const tbody = document.querySelector('#voters-display-table tbody'); 
+            tbody.innerHTML = '';
+            document.getElementById('voter-count-display').textContent = votersList.length;
+            votersList.forEach(v => { 
+                tbody.innerHTML += `<tr><td>${v.rollNo}</td><td>${v.name}</td><td>${v.grade}</td><td>${v.section}</td><td style="color:${v.voted?'red':'green'}; font-weight:bold;">${v.voted?'Voted':'Eligible'}</td></tr>`; 
+            });
+        }
+        
+        document.getElementById('voter-excel-upload').addEventListener('change', (e) => {
+            const f = e.target.files[0]; if(!f) return;
+            const r = new FileReader();
+            r.onload = (evt) => {
+                try {
+                    const wb = XLSX.read(new Uint8Array(evt.target.result), {type:'array'});
+                    votersList = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]).map(row => ({
+                        name: row["Name"] || "Unknown", 
+                        rollNo: row["Roll No"] || Math.floor(Math.random()*1000), 
+                        grade: row["Grade"] || "N/A", 
+                        section: row["Section"] || "N/A", 
+                        voted: false
+                    }));
+                    saveDataToLocalStorage(); 
+                    renderVotersTable(); 
+                    alert("Voters database populated successfully!");
+                } catch(err) {
+                    alert("Error parsing Excel document formats.");
+                }
+            }; 
+            r.readAsArrayBuffer(f);
+        });
+
+        function generateVoterCards() {
+            const c = document.getElementById('voter-cards-output'); 
+            c.innerHTML = '';
+            votersList.forEach((v, i) => {
+                const qrId = `qr-${i}`;
+                c.innerHTML += `<div class="voter-card"><div class="voter-card-title">VOTER ID</div><b>${v.name.toUpperCase()}</b><br>Roll: ${v.rollNo}<br>Class: ${v.grade}-${v.section}<div class="qr-holder" id="${qrId}"></div></div>`;
+                setTimeout(() => new QRCode(document.getElementById(qrId), {text: JSON.stringify({rollNo:v.rollNo, name:v.name}), width: 90, height: 90}), 10);
+            });
+        }
+        document.getElementById('trigger-print-btn').onclick = () => window.print();
+
+        function renderVaultLedger() {
+            const tbody = document.querySelector('#vault-ledger-table tbody'); 
+            tbody.innerHTML = '';
+            auditVaultLedger.forEach(l => { 
+                tbody.innerHTML += `<tr><td>${l.timestamp}</td><td>${l.rollNo}</td><td>${l.meta}</td><td>${l.hb}</td><td>${l.hg}</td></tr>`; 
+            });
+        }
+
+        function showResults() {
+            resultsSectionDiv.style.display = 'block';
+            let html = '<h2>Election Results</h2><table style="width:100%; max-width:500px; margin:auto; margin-bottom:20px;">';
+            html += `<tr><td><b>Total Votes Logged:</b></td><td><b>${headBoyCandidates.reduce((s,c)=>s+c.votes,0) + headGirlCandidates.reduce((s,c)=>s+c.votes,0)}</b></td></tr></table>`;
+            
+            const renderCat = (cands, title) => {
+                let sorted = [...cands].sort((a,b)=>b.votes-a.votes);
+                let tHtml = `<h3>${title} Standings Matrix</h3><table class="generic-table"><tr><th>Rank Pos</th><th>Candidate Name</th><th>Total Votes Secure</th></tr>`;
+                sorted.forEach((c,i) => { 
+                    tHtml += `<tr class="${i===0 && c.votes > 0 ? 'winner-row' : ''}"><td><b>${i+1}</b></td><td>${c.name}</td><td>${c.votes}</td></tr>`; 
+                });
+                return tHtml + '</table>';
+            };
+            resultsOutputDiv.innerHTML = html + renderCat(headBoyCandidates, 'Head Boy Category') + renderCat(headGirlCandidates, 'Head Girl Category');
+        }
+
+        function startTimer() {
+            if(timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                let s = Math.floor((new Date() - sessionStartTime) / 1000);
+                timerDisplay.textContent = `Time: ${String(Math.floor(s/3600)).padStart(2,'0')}:${String(Math.floor((s%3600)/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
+            }, 1000);
+        }
+
+        // --- NEW: End Session Without Votes handler ---
+        document.getElementById('menu-toggle-verification').onclick = () => verifyAdmin(() => {
+            const currentMode = verificationRequired ? 'STRICT (Verification ON)' : 'OPEN (No Verification)';
+            const newModeLabel = verificationRequired ? 'OPEN VOTING (No Verification)' : 'STRICT (Verification Required)';
+            if (!confirm(`Current mode: ${currentMode}\n\nSwitch to: ${newModeLabel}?`)) return;
+
+            verificationRequired = !verificationRequired;
+
+            // Reset voter state for the new mode
+            currentUserVotedHB = false;
+            currentUserVotedHG = false;
+            if (!verificationRequired && overallVotingActive) {
+                activeVerifiedVoter = { rollNo: 'OPEN', name: 'OPEN VOTE', grade: '-', section: '-' };
+            } else {
+                activeVerifiedVoter = null;
+            }
+
+            saveDataToLocalStorage();
+            updateVerificationModeUI();
+            closeAllPanels();
+            updateUIBasedOnState();
+
+            const msg = verificationRequired
+                ? '🔒 Switched to STRICT mode. Voter ID required.'
+                : '⚡ Switched to OPEN mode. Voting without ID verification enabled.';
+            alert(msg);
+        });
+        document.getElementById('menu-end-session-novotes').onclick = () => verifyAdmin(() => {
+            const totalVotes = headBoyCandidates.reduce((s,c)=>s+c.votes,0) + headGirlCandidates.reduce((s,c)=>s+c.votes,0);
+            if (totalVotes > 0) {
+                alert("Votes have already been cast. Use 'End Voting Session' instead.");
+                return;
+            }
+            if(confirm("End session without any votes recorded? Session will be closed with zero votes.")) {
+                overallVotingActive = false; 
+                sessionEndTime = new Date();
+                activeVerifiedVoter = null;
+                closeAllPanels(); 
+                saveDataToLocalStorage(); 
+                updateUIBasedOnState();
+                alert("Session ended. No votes were recorded.");
+            }
+        });
+
+        // --- NEW: Booth name display helper ---
+        function updateBoothNameDisplay() {
+            const display = document.getElementById('booth-name-display');
+            const text = document.getElementById('booth-name-text');
+            if (boothName && boothName.trim() !== '') {
+                text.textContent = boothName;
+                display.style.display = 'block';
+            } else {
+                display.style.display = 'none';
+            }
+        }
+
+        // --- NEW: Verification mode UI sync ---
+        function updateVerificationModeUI() {
+            document.getElementById('verify-mode-on').checked = verificationRequired;
+            document.getElementById('verify-mode-off').checked = !verificationRequired;
+            const status = document.getElementById('verify-mode-status');
+            if (verificationRequired) {
+                status.textContent = '🔒 STRICT MODE: Voters must scan QR / show ID before voting.';
+                status.style.background = '#e8f5e9';
+                status.style.color = '#2e7d32';
+            } else {
+                status.textContent = '⚡ OPEN MODE: Voters can vote directly without ID verification.';
+                status.style.background = '#fff3e0';
+                status.style.color = '#e65100';
+            }
+        }
+
+        // --- NEW: Change Password logic ---
+        document.getElementById('change-pwd-btn').onclick = () => {
+            const cur = document.getElementById('change-pwd-current').value;
+            const nw = document.getElementById('change-pwd-new').value.trim();
+            const conf = document.getElementById('change-pwd-confirm').value.trim();
+
+            if (!sessionPassword) {
+                alert('No password is currently set. Use Start Session to set one first.');
+                return;
+            }
+            if (cur !== sessionPassword) {
+                alert('Current password is incorrect.');
+                return;
+            }
+            if (!nw) {
+                alert('New password cannot be empty.');
+                return;
+            }
+            if (nw !== conf) {
+                alert('New passwords do not match.');
+                return;
+            }
+            sessionPassword = nw;
+            saveDataToLocalStorage();
+            document.getElementById('change-pwd-current').value = '';
+            document.getElementById('change-pwd-new').value = '';
+            document.getElementById('change-pwd-confirm').value = '';
+            alert('✅ Password changed successfully.');
+        };
+
+        // Verification mode radio live-update status text
+        document.querySelectorAll('input[name="verification-mode"]').forEach(r => {
+            r.addEventListener('change', updateVerificationModeUI);
+        });
+
+        // Execution Entry Point Initiation
+        loadDataFromLocalStorage(); 
+        createBallot(headBoyCandidates, headBoyBallotDiv, 'headboy');
+        createBallot(headGirlCandidates, headGirlBallotDiv, 'headgirl');
+        updateUIBasedOnState();
+    </script>
+</body>
+</html>
